@@ -14,6 +14,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.app.config import settings
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 def provision_dynamodb(dynamodb):
     tables = [
         {"name": settings.DYNAMODB_TABLE_INVENTORY, "key": "sku"},
