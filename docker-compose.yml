@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  cloudchain-scm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aws-cloudchain-app
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_MODE=local
+      - ENVIRONMENT=development
+      - PORT=8000
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # Optional LocalStack container for emulating real AWS services locally
+  localstack:
+    image: localstack/localstack:latest
+    container_name: cloudchain-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=dynamodb,s3,sns,sts
+      - AWS_DEFAULT_REGION=us-east-1
+    profiles:
+      - localstack

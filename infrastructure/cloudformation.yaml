@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS CloudChain SCM - Serverless Multipurpose Supply Chain Management Platform
+  Infrastructure including DynamoDB tables, S3 Bucket, SNS Topic, and Lambda API Gateway.
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        AWS_MODE: aws
+        DYNAMODB_TABLE_INVENTORY: !Ref InventoryTable
+        DYNAMODB_TABLE_ORDERS: !Ref OrdersTable
+        DYNAMODB_TABLE_SUPPLIERS: !Ref SuppliersTable
+        DYNAMODB_TABLE_TELEMETRY: !Ref TelemetryTable
+        DYNAMODB_TABLE_AUDIT: !Ref AuditTable
+        S3_BUCKET_NAME: !Ref ManifestsBucket
+        SNS_TOPIC_ARN: !Ref CriticalAlertsTopic
+
+Resources:
+  # ==========================================================
+  # Amazon DynamoDB Tables (On-Demand Pay-per-Request Billing)
+  # ==========================================================
+  InventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: scm-inventory
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sku
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sku
+          KeyType: HASH
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: scm-orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  SuppliersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: scm-suppliers
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  TelemetryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: scm-telemetry
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: order_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: order_id
+          KeyType: HASH
+
+  AuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: scm-audit-logs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  # ==========================================================
+  # Amazon S3 Bucket for Shipping Manifests & Documents
+  # ==========================================================
+  ManifestsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "scm-shipping-manifests-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, POST, HEAD]
+            AllowedOrigins: ['*']
+
+  # ==========================================================
+  # Amazon SNS Topic for Supply Chain Critical Alerts
+  # ==========================================================
+  CriticalAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: scm-critical-alerts
+      DisplayName: AWS CloudChain SCM Critical Alerts
+
+  # ==========================================================
+  # AWS Lambda & Serverless HTTP API
+  # ==========================================================
+  CloudChainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: backend.app.main.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SuppliersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TelemetryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AuditTable
+        - S3CrudPolicy:
+            BucketName: !Ref ManifestsBucket
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt CriticalAlertsTopic.TopicName
+      Events:
+        HttpApiProxy:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        HttpApiRoot:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+
+Outputs:
+  ApiEndpoint:
+    Description: "HTTP API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  S3BucketName:
+    Description: "Amazon S3 bucket for documents"
+    Value: !Ref ManifestsBucket
+  SnsTopicArn:
+    Description: "Amazon SNS Topic ARN"
+    Value: !Ref CriticalAlertsTopic
