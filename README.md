@@ -9,6 +9,21 @@
 
 ---
 
+## 🌐 Direct Live Web Demo (Zero Installation Required!)
+
+> **No `git clone`, no `pip install`, and no local setup required!**
+> Click the direct links below to open and interact with the complete Supply Chain Management platform right in your browser on desktop or mobile:
+
+### 🚀 **[Open Live SCM Dashboard (GitHub Pages)](https://thedemonofgalaxy.github.io/multipurpose-supply-chain-aws/)**
+
+[![Open in GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2ea44f?style=for-the-badge&logo=github&logoColor=white)](https://thedemonofgalaxy.github.io/multipurpose-supply-chain-aws/)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/1--Click%20Cloud%20Sandbox-GitHub%20Codespaces-blue?style=for-the-badge&logo=github&logoColor=white)](https://codespaces.new/Thedemonofgalaxy/multipurpose-supply-chain-aws)
+
+- **Direct GitHub Pages Link:** [https://thedemonofgalaxy.github.io/multipurpose-supply-chain-aws/](https://thedemonofgalaxy.github.io/multipurpose-supply-chain-aws/)
+- **1-Click Cloud Codespace:** [Launch in GitHub Codespaces](https://codespaces.new/Thedemonofgalaxy/multipurpose-supply-chain-aws) (automatically launches Python FastAPI in the cloud)
+
+---
+
 ## 1. Executive Summary & Concept
 
 **AWS CloudChain SCM** is a high-performance, working prototype of a **multipurpose supply chain management and logistics platform** built on **Amazon Web Services (AWS)**. It bridges multiple operational domains across the modern multi-echelon supply chain:

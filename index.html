@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS CloudChain SCM - Multipurpose Supply Chain Management</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0b132b',
+                        cardbg: '#1c2541',
+                        accent: '#3a86ff',
+                        aws: '#ff9900',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-[#0d1b2a]/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white text-lg shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-boxes-packing"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">AWS CloudChain</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                            <i class="fa-brands fa-aws"></i> Cloud Native
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">Multipurpose Supply Chain & Logistics Control Platform</p>
+                </div>
+            </div>
+
+            <!-- AWS Status & Action Buttons -->
+            <div class="flex items-center space-x-3">
+                <div id="cloud-status-badge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="cloud-mode-text" class="text-slate-300 font-medium">AWS Mode: Connecting...</span>
+                </div>
+
+                <button onclick="seedDemoData()" title="Re-seed realistic sample data" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-rotate text-indigo-400"></i> Seed Demo Data
+                </button>
+
+                <button onclick="openNewOrderModal()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-plus"></i> Create Order
+                </button>
+
+                <a href="/docs" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 transition" title="Interactive Swagger REST API">
+                    <i class="fa-solid fa-code"></i> API
+                </a>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 overflow-x-auto border-t border-slate-800/60 py-1 text-sm font-medium">
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-link active px-3 py-2 rounded-md text-indigo-400 border-b-2 border-indigo-500 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-gauge-high"></i> Control Tower
+            </button>
+            <button onclick="switchTab('shipments')" id="tab-btn-shipments" class="tab-link px-3 py-2 rounded-md text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-truck-fast"></i> Orders & Shipments
+            </button>
+            <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="tab-link px-3 py-2 rounded-md text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-warehouse"></i> Inventory & Hubs
+            </button>
+            <button onclick="switchTab('telemetry')" id="tab-btn-telemetry" class="tab-link px-3 py-2 rounded-md text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-temperature-arrow-up text-cyan-400"></i> Cold-Chain IoT
+            </button>
+            <button onclick="switchTab('suppliers')" id="tab-btn-suppliers" class="tab-link px-3 py-2 rounded-md text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-handshake"></i> Suppliers & Sourcing
+            </button>
+            <button onclick="switchTab('cloud')" id="tab-btn-cloud" class="tab-link px-3 py-2 rounded-md text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-brands fa-aws text-amber-400"></i> AWS Cloud & S3 Explorer
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- ============================================================== -->
+        <!-- TAB 1: CONTROL TOWER (DASHBOARD) -->
+        <!-- ============================================================== -->
+        <section id="tab-content-dashboard" class="space-y-6">
+            <!-- Critical Notification Banner (if low stock or cold chain breach) -->
+            <div id="sns-emergency-banner" class="hidden rounded-xl border border-red-500/30 bg-red-950/40 p-4 text-red-200 flex items-start justify-between shadow-lg shadow-red-900/20">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm" id="sns-banner-title">Critical Supply Chain Alert</div>
+                        <div class="text-xs text-red-300 mt-0.5" id="sns-banner-desc">Automated AWS SNS alert triggered.</div>
+                    </div>
+                </div>
+                <button onclick="dismissSnsBanner()" class="text-xs text-red-400 hover:text-red-200 underline">Dismiss</button>
+            </div>
+
+            <!-- Metric Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Total Valuation -->
+                <div class="glass-panel p-5 glass-panel-hover">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Total Inventory Value</span>
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="metric-valuation" class="text-2xl font-extrabold text-white">$0.00</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-arrow-trend-up"></i> Active</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+                        <span>Managed SKUs:</span>
+                        <span id="metric-skus" class="font-bold text-slate-200">0</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Active Shipments -->
+                <div class="glass-panel p-5 glass-panel-hover">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Active Shipments</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                            <i class="fa-solid fa-truck-moving"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="metric-active-shipments" class="text-2xl font-extrabold text-white">0</span>
+                        <span class="text-xs text-blue-400 font-medium">In Transit / Hub</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+                        <span>Fulfillment Velocity:</span>
+                        <span id="metric-fulfillment-rate" class="font-bold text-emerald-400">100%</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Stock Threshold Alerts -->
+                <div class="glass-panel p-5 glass-panel-hover">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Low Stock Alerts</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="metric-low-stock" class="text-2xl font-extrabold text-amber-400">0</span>
+                        <span class="text-xs text-amber-400/80 font-medium">Require Reorder</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+                        <span>Automated SNS:</span>
+                        <span class="font-bold text-slate-200">Enabled</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Cold-Chain Telemetry -->
+                <div class="glass-panel p-5 glass-panel-hover">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                        <span>Cold Chain Sensors</span>
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                            <i class="fa-solid fa-snowflake"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span id="metric-cold-sensors" class="text-2xl font-extrabold text-cyan-400">Nominal</span>
+                        <span class="text-xs text-emerald-400 font-medium">2°C - 8°C</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+                        <span>IoT Stream:</span>
+                        <span class="font-bold text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Activity Log Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart 1: Order Status Pipeline -->
+                <div class="glass-panel p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Shipment Pipeline Status</h3>
+                        <span class="text-xs text-slate-400">DynamoDB Table: scm-orders</span>
+                    </div>
+                    <div class="relative h-56 flex items-center justify-center">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Inventory Breakdown by Category -->
+                <div class="glass-panel p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Stock Units by Category</h3>
+                        <span class="text-xs text-slate-400">DynamoDB Table: scm-inventory</span>
+                    </div>
+                    <div class="relative h-56 flex items-center justify-center">
+                        <canvas id="inventoryCategoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Audit Log & Activity Ticker -->
+                <div class="glass-panel p-5 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-400"></i> Cloud Audit Trail
+                        </h3>
+                        <span class="text-[11px] text-slate-400 font-mono">Real-time</span>
+                    </div>
+                    <div id="audit-log-container" class="space-y-3 overflow-y-auto max-h-56 pr-1 flex-1 text-xs">
+                        <div class="text-slate-500 italic text-center py-6">Loading audit events...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-Warehouse Snapshot -->
+            <div class="glass-panel p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Global Logistics Hubs & Utilization</h3>
+                        <p class="text-xs text-slate-400">Strategic distribution nodes deployed across multi-cloud regions</p>
+                    </div>
+                    <button onclick="switchTab('inventory')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">View All Hubs &rarr;</button>
+                </div>
+                <div id="warehouses-snapshot-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 2: SHIPMENTS & LOGISTICS -->
+        <!-- ============================================================== -->
+        <section id="tab-content-shipments" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Order Fulfillment & Shipment Tracking</h2>
+                    <p class="text-xs text-slate-400">Lifecycle management from purchase order creation to final proof of delivery</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="inline-flex rounded-lg bg-slate-800 p-0.5 border border-slate-700 text-xs">
+                        <button onclick="filterOrders('ALL')" id="filter-btn-ALL" class="px-3 py-1 rounded-md bg-indigo-600 text-white font-medium">All</button>
+                        <button onclick="filterOrders('IN_TRANSIT')" id="filter-btn-IN_TRANSIT" class="px-3 py-1 rounded-md text-slate-300 hover:text-white">In Transit</button>
+                        <button onclick="filterOrders('DELIVERED')" id="filter-btn-DELIVERED" class="px-3 py-1 rounded-md text-slate-300 hover:text-white">Delivered</button>
+                        <button onclick="filterOrders('COLD_CHAIN')" id="filter-btn-COLD_CHAIN" class="px-3 py-1 rounded-md text-slate-300 hover:text-white">Cold-Chain Only</button>
+                    </div>
+                    <button onclick="openNewOrderModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1 transition">
+                        <i class="fa-solid fa-plus"></i> New Order
+                    </button>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="glass-panel overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3.5">Order ID / Tracking</th>
+                                <th class="p-3.5">Customer & Destination</th>
+                                <th class="p-3.5">Items & Value</th>
+                                <th class="p-3.5">Status Milestone</th>
+                                <th class="p-3.5">Current Location</th>
+                                <th class="p-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="divide-y divide-slate-800/60 font-sans">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 3: INVENTORY & WAREHOUSES -->
+        <!-- ============================================================== -->
+        <section id="tab-content-inventory" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Multi-Location Inventory Management</h2>
+                    <p class="text-xs text-slate-400">Real-time stock tracking with automated safety thresholds & SNS triggers</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="inventory-cat-filter" onchange="filterInventoryByCategory(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none focus:border-indigo-500">
+                        <option value="">All Product Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Healthcare & Pharma">Healthcare & Pharma</option>
+                        <option value="Automotive Components">Automotive Components</option>
+                        <option value="Consumer Goods">Consumer Goods</option>
+                        <option value="Raw Materials">Raw Materials</option>
+                    </select>
+                    <button onclick="openNewProductModal()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-plus"></i> Add Product
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="glass-panel overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3.5">SKU / Product Name</th>
+                                <th class="p-3.5">Category</th>
+                                <th class="p-3.5">Warehouse Hub</th>
+                                <th class="p-3.5">Stock Level</th>
+                                <th class="p-3.5">Unit Price</th>
+                                <th class="p-3.5">Status</th>
+                                <th class="p-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-800/60 font-sans">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 4: COLD-CHAIN IOT TELEMETRY -->
+        <!-- ============================================================== -->
+        <section id="tab-content-telemetry" class="hidden space-y-6">
+            <div class="glass-panel p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-cyan-400 sensor-ping"></span>
+                            <h2 class="text-lg font-bold text-white">Cold-Chain IoT Sensor Monitor & Anomaly Detector</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Live temperature and condition telemetry for vaccines, biologics, and sensitive cargo</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="simulateTelemetryBreach()" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 flex items-center gap-2 transition">
+                            <i class="fa-solid fa-fire-flame-curved"></i> Simulate Temperature Breach (Spike)
+                        </button>
+                        <button onclick="loadTelemetry()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium">
+                            <i class="fa-solid fa-arrows-rotate"></i> Refresh Sensor
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Sensor Cards Grid -->
+            <div id="telemetry-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 5: SUPPLIERS & PROCUREMENT -->
+        <!-- ============================================================== -->
+        <section id="tab-content-suppliers" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Global Supplier Network & Procurement</h2>
+                    <p class="text-xs text-slate-400">Vetted tier-1 suppliers, lead times, reliability ratings, and automated purchase orders</p>
+                </div>
+                <button onclick="openNewSupplierModal()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-user-plus"></i> Onboard Supplier
+                </button>
+            </div>
+
+            <div id="suppliers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- TAB 6: AWS CLOUD ARCHITECTURE & S3 EXPLORER -->
+        <!-- ============================================================== -->
+        <section id="tab-content-cloud" class="hidden space-y-6">
+            <!-- Architecture Overview Card -->
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-brands fa-aws text-amber-400 text-xl"></i> AWS Cloud Native Architecture Topology
+                        </h2>
+                        <p class="text-xs text-slate-400">Serverless microservices pipeline utilizing DynamoDB, S3, SNS, and Lambda</p>
+                    </div>
+                    <div id="aws-mode-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        AWS Mode: Auto-Detect
+                    </div>
+                </div>
+
+                <!-- AWS Services Interactive Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                    <!-- Amazon DynamoDB -->
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Amazon DynamoDB</span>
+                            <i class="fa-solid fa-table text-amber-400"></i>
+                        </div>
+                        <div class="text-xl font-bold text-white" id="cloud-dynamo-count">5 Tables</div>
+                        <div class="text-[11px] text-slate-400 mt-2 space-y-1">
+                            <div>• <span class="font-mono text-slate-300">scm-inventory</span> (<span id="cnt-inv">0</span> items)</div>
+                            <div>• <span class="font-mono text-slate-300">scm-orders</span> (<span id="cnt-ord">0</span> items)</div>
+                            <div>• <span class="font-mono text-slate-300">scm-suppliers</span> (<span id="cnt-sup">0</span> items)</div>
+                            <div>• <span class="font-mono text-slate-300">scm-telemetry</span> (<span id="cnt-tel">0</span> items)</div>
+                            <div>• <span class="font-mono text-slate-300">scm-audit-logs</span> (<span id="cnt-aud">0</span> items)</div>
+                        </div>
+                    </div>
+
+                    <!-- Amazon S3 -->
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Amazon S3</span>
+                            <i class="fa-solid fa-bucket text-emerald-400"></i>
+                        </div>
+                        <div class="text-xl font-bold text-white" id="cloud-s3-count">0 Files</div>
+                        <div class="text-[11px] text-slate-400 mt-2">
+                            <div>Bucket: <span class="font-mono text-emerald-400" id="cloud-bucket-name">scm-manifests</span></div>
+                            <div class="mt-1">Stores cryptographically verified shipping bills of lading, QR tags & PDF manifests.</div>
+                        </div>
+                    </div>
+
+                    <!-- Amazon SNS -->
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Amazon SNS</span>
+                            <i class="fa-solid fa-bell text-rose-400"></i>
+                        </div>
+                        <div class="text-xl font-bold text-white" id="cloud-sns-count">0 Alerts</div>
+                        <div class="text-[11px] text-slate-400 mt-2">
+                            <div>Topic: <span class="font-mono text-rose-300">scm-critical-alerts</span></div>
+                            <div class="mt-1">Automated push triggers for cold-chain breaches and low warehouse stock.</div>
+                        </div>
+                    </div>
+
+                    <!-- AWS Lambda -->
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">AWS Lambda</span>
+                            <i class="fa-solid fa-bolt text-indigo-400"></i>
+                        </div>
+                        <div class="text-xl font-bold text-white">Mangum Serverless</div>
+                        <div class="text-[11px] text-slate-400 mt-2">
+                            <div>Runtime: Python 3.12</div>
+                            <div class="mt-1">Zero-server autoscaling REST API with API Gateway routing.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amazon S3 Manifest Explorer & SNS Alert Feeds -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- S3 Files Card -->
+                <div class="glass-panel p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-folder-open text-emerald-400"></i> Amazon S3 Digital Manifests
+                        </h3>
+                        <span class="text-xs text-slate-400">Click to preview document</span>
+                    </div>
+                    <div id="s3-files-list" class="space-y-2 max-h-72 overflow-y-auto text-xs pr-1">
+                        <div class="text-slate-500 italic text-center py-8">No manifests generated yet. Click "Generate S3 Manifest" on any order!</div>
+                    </div>
+                </div>
+
+                <!-- SNS Published Alerts Card -->
+                <div class="glass-panel p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Amazon SNS Critical Alert Log
+                        </h3>
+                        <span class="text-xs text-slate-400">Pub/Sub Message Stream</span>
+                    </div>
+                    <div id="sns-alerts-list" class="space-y-2.5 max-h-72 overflow-y-auto text-xs pr-1">
+                        <div class="text-slate-500 italic text-center py-8">No alerts queued.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============================================================== -->
+    <!-- MODALS -->
+    <!-- ============================================================== -->
+
+    <!-- Modal 1: Track & Advance Shipment Journey -->
+    <div id="modal-journey" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-cardbg border border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-route text-indigo-400"></i> Shipment Journey Tracker
+                    </h3>
+                    <p class="text-xs text-slate-400" id="journey-order-id">ORD-...</p>
+                </div>
+                <button onclick="closeJourneyModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Stepper Container -->
+            <div id="journey-stepper-container" class="space-y-4 max-h-80 overflow-y-auto pr-1">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Advance Action Box -->
+            <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-semibold text-slate-300">Next Logistics Milestone</div>
+                    <div class="text-[11px] text-slate-400">Advance order step-by-step for live demonstration</div>
+                </div>
+                <button id="btn-advance-milestone" onclick="executeAdvanceMilestone()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/30">
+                    <i class="fa-solid fa-forward-step"></i> Advance Milestone
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Create Order -->
+    <div id="modal-create-order" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-cardbg border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cart-plus text-indigo-400"></i> Create Logistics Order
+                </h3>
+                <button onclick="closeNewOrderModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="handleCreateOrder(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Customer / Enterprise Name</label>
+                    <input type="text" id="order-cust-name" required placeholder="e.g. Roche Pharmaceuticals" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Contact Email</label>
+                        <input type="email" id="order-cust-email" required placeholder="logistics@roche.demo" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Origin Warehouse</label>
+                        <select id="order-origin-wh" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="WH-EU-01">WH-EU-01 (Frankfurt)</option>
+                            <option value="WH-NA-01">WH-NA-01 (Seattle)</option>
+                            <option value="WH-APAC-01">WH-APAC-01 (Singapore)</option>
+                            <option value="WH-LATAM-01">WH-LATAM-01 (São Paulo)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Destination City</label>
+                        <input type="text" id="order-dest-city" required placeholder="e.g. Geneva" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Destination Country</label>
+                        <input type="text" id="order-dest-country" required placeholder="e.g. Switzerland" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-slate-300 font-semibold mb-1">Select Product</label>
+                        <select id="order-product-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <!-- Injected by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Quantity</label>
+                        <input type="number" id="order-qty" min="1" max="1000" value="5" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" onclick="closeNewOrderModal()" class="px-3.5 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition">Submit Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Add New Product -->
+    <div id="modal-create-product" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-cardbg border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-box text-emerald-400"></i> Register New SKU in Warehouse
+                </h3>
+                <button onclick="closeNewProductModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="handleCreateProduct(event)" class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">SKU Code</label>
+                        <input type="text" id="prod-sku" required placeholder="e.g. ELC-SENSOR-99" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Category</label>
+                        <select id="prod-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="Electronics">Electronics</option>
+                            <option value="Healthcare & Pharma">Healthcare & Pharma</option>
+                            <option value="Automotive Components">Automotive Components</option>
+                            <option value="Consumer Goods">Consumer Goods</option>
+                            <option value="Raw Materials">Raw Materials</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Product Description / Name</label>
+                    <input type="text" id="prod-name" required placeholder="e.g. Quantum Solid-State Sensor" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Stock Quantity</label>
+                        <input type="number" id="prod-quantity" min="1" value="100" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Safety Threshold</label>
+                        <input type="number" id="prod-threshold" min="1" value="25" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Unit Price ($)</label>
+                        <input type="number" step="0.01" id="prod-price" min="0.1" value="149.99" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Warehouse Location</label>
+                        <select id="prod-warehouse" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="WH-NA-01">WH-NA-01 (Seattle)</option>
+                            <option value="WH-EU-01">WH-EU-01 (Frankfurt)</option>
+                            <option value="WH-APAC-01">WH-APAC-01 (Singapore)</option>
+                            <option value="WH-LATAM-01">WH-LATAM-01 (São Paulo)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center pt-5">
+                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                            <input type="checkbox" id="prod-coldchain" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0">
+                            <span>Requires Cold-Chain (2-8°C)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" onclick="closeNewProductModal()" class="px-3.5 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition">Add to DynamoDB</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 bg-[#0d1b2a] text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+                <span class="font-bold text-slate-400">AWS CloudChain SCM Prototype</span> • Amazon DynamoDB • Amazon S3 • Amazon SNS • AWS Lambda
+            </div>
+            <div>
+                Designed for demonstration and cloud architecture presentation.
+            </div>
+        </div>
+    </footer>
+
+    <!-- App JavaScript -->
+    <script src="static/js/app.js"></script>
+</body>
+</html>
