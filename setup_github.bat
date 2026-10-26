@@ -16,42 +16,43 @@ if not exist .git (
     echo [*] Initializing Git repository...
     git init -b main
 ) else (
-    echo [*] Git repository already initialized.
+    echo [*] Git repository active on branch main.
     git branch -M main
 )
 
-echo [*] Staging project files...
+echo [*] Staging all files...
 git add .
 
-echo [*] Committing changes...
-git commit -m "Initial commit: AWS CloudChain SCM multipurpose prototype"
+echo [*] Committing changes (if any)...
+git commit -m "feat: AWS CloudChain SCM multipurpose prototype" 2>nul
+
+set REPO_URL=https://github.com/Thedemonofgalaxy/multipurpose-supply-chain-aws.git
 
 echo.
-echo ========================================================
-echo  Next Steps to Push to your GitHub Account:
-echo ========================================================
-echo 1. Create a new repository on GitHub: https://github.com/new
-echo    (Name it e.g. 'multipurpose-supply-chain-aws')
-echo 2. Run the following command (replace with your repo URL):
-echo.
-echo    git remote add origin https://github.com/YOUR_USERNAME/multipurpose-supply-chain-aws.git
-echo    git push -u origin main
-echo.
-echo ========================================================
-set /p REPO_URL="Enter your GitHub Repository URL (or press ENTER to skip): "
+echo [*] Target Repository: %REPO_URL%
+git remote remove origin 2>nul
+git remote add origin %REPO_URL%
 
-if not "%REPO_URL%"=="" (
-    git remote remove origin 2>nul
-    git remote add origin %REPO_URL%
-    echo [*] Pushing to %REPO_URL%...
-    git push -u origin main
-    if %errorlevel% equ 0 (
-        echo.
-        echo [SUCCESS] Project successfully deployed to GitHub!
-    ) else (
-        echo.
-        echo [NOTE] Push completed or requires GitHub authentication.
-    )
+echo [*] Pushing to GitHub (main branch)...
+echo.
+git push -u origin main
+
+if %errorlevel% equ 0 (
+    echo.
+    echo ========================================================
+    echo  [SUCCESS] Project deployed successfully to GitHub!
+    echo  View it here: https://github.com/Thedemonofgalaxy/multipurpose-supply-chain-aws
+    echo ========================================================
+) else (
+    echo.
+    echo ========================================================
+    echo  [AUTHENTICATION REQUIRED]
+    echo  If a browser window opened, click "Sign in with your browser"
+    echo  to authenticate with GitHub account: Thedemonofgalaxy.
+    echo.
+    echo  Alternatively, you can push using a Personal Access Token:
+    echo  git push https://Thedemonofgalaxy:YOUR_TOKEN@github.com/Thedemonofgalaxy/multipurpose-supply-chain-aws.git main
+    echo ========================================================
 )
 
 echo.
